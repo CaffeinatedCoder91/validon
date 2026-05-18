@@ -18,6 +18,7 @@ interface N8NWebhookResponse {
 
 interface UseQualityCheckResult {
   analyse: (rows: CSVRow[]) => Promise<void>;
+  reset: () => void;
   report: QualityReport | null;
   state: AppState;
   error: string | null;
@@ -81,8 +82,15 @@ export function useQualityCheck(): UseQualityCheckResult {
     }
   };
 
+  const reset = (): void => {
+    setReport(null);
+    setState('idle');
+    setError(null);
+  };
+
   return {
     analyse,
+    reset,
     report,
     state,
     error,

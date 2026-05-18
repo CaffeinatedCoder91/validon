@@ -29,6 +29,7 @@ export function App() {
   function handleStartOver(): void {
     setCurrentView('upload');
     fileUploadHook.reset();
+    qualityCheckHook.reset();
   }
 
   const renderContent = (): React.ReactNode => {
