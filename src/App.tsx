@@ -1,122 +1,88 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { FileUpload } from './components/FileUpload';
+import { ResultsTable } from './components/ResultsTable';
+import { LoadingSpinner } from './components/LoadingSpinner';
+import { ErrorMessage } from './components/ErrorMessage';
+import { useFileUpload } from './hooks/useFileUpload';
+import { useQualityCheck } from './hooks/useQualityCheck';
 
-function App() {
-  const [count, setCount] = useState(0)
+type ApplicationView = 'upload' | 'results';
+
+export function App() {
+  const [currentView, setCurrentView] = useState<ApplicationView>('upload');
+  const fileUploadHook = useFileUpload();
+  const qualityCheckHook = useQualityCheck();
+
+  async function handleFileSelect(file: File): Promise<void> {
+    await fileUploadHook.handleFileSelect(file);
+  }
+
+  async function handleAnalysisSubmit(): Promise<void> {
+    if (!fileUploadHook.file || fileUploadHook.parsedData.length === 0) {
+      return;
+    }
+
+    await qualityCheckHook.analyse(fileUploadHook.parsedData);
+    setCurrentView('results');
+  }
+
+  function handleStartOver(): void {
+    setCurrentView('upload');
+    fileUploadHook.handleFileSelect(null as unknown as File).catch(() => {});
+  }
+
+  const renderContent = (): React.ReactNode => {
+    if (qualityCheckHook.state === 'loading') {
+      return <LoadingSpinner />;
+    }
+
+    if (qualityCheckHook.state === 'error') {
+      return (
+        <div className="app-error-section">
+          <ErrorMessage message={qualityCheckHook.error || 'An unexpected error occurred'} />
+          <button onClick={handleStartOver} className="start-over-button">
+            Upload Another File
+          </button>
+        </div>
+      );
+    }
+
+    if (currentView === 'results' && qualityCheckHook.report) {
+      return (
+        <div className="app-results-section">
+          <ResultsTable report={qualityCheckHook.report} />
+          <button onClick={handleStartOver} className="start-over-button">
+            Analyse Another File
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <FileUpload
+        onFileSelect={handleFileSelect}
+        onSubmit={handleAnalysisSubmit}
+        isLoading={qualityCheckHook.state === 'loading'}
+        selectedFile={fileUploadHook.file}
+        uploadError={fileUploadHook.error || undefined}
+      />
+    );
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <header className="app-header">
+        <h1 className="app-title">Data Quality Checker</h1>
+        <p className="app-description">Upload a CSV file to check data quality with AI-powered analysis</p>
+      </header>
 
-      <div className="ticks"></div>
+      <main className="app-main">
+        {renderContent()}
+      </main>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <footer className="app-footer">
+        <p className="footer-text">Powered by n8n & Claude AI</p>
+      </footer>
+    </div>
+  );
 }
-
-export default App
