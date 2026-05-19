@@ -34,13 +34,7 @@ export function useQualityCheck(): UseQualityCheckResult {
     setState('loading');
 
     try {
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
-
-      if (!webhookUrl) {
-        throw new Error('Webhook URL not configured');
-      }
-
-      const response = await fetch(webhookUrl, {
+      const response = await fetch('/api/webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
