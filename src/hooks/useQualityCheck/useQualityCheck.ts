@@ -16,6 +16,10 @@ interface N8NWebhookResponse {
   }>;
 }
 
+interface WebhookErrorResponse {
+  error?: string;
+}
+
 interface UseQualityCheckResult {
   analyse: (rows: CSVRow[]) => Promise<void>;
   reset: () => void;
@@ -23,6 +27,22 @@ interface UseQualityCheckResult {
   state: AppState;
   error: string | null;
 }
+
+const fallbackErrorMessage = 'An error occurred while analysing your data';
+
+const getWebhookErrorMessage = async (response: Response): Promise<string> => {
+  try {
+    const data = (await response.json()) as WebhookErrorResponse;
+
+    if (data.error) {
+      return data.error;
+    }
+  } catch {
+    return `Webhook returned status ${response.status}`;
+  }
+
+  return `Webhook returned status ${response.status}`;
+};
 
 export function useQualityCheck(): UseQualityCheckResult {
   const [report, setReport] = useState<QualityReport | null>(null);
@@ -46,7 +66,7 @@ export function useQualityCheck(): UseQualityCheckResult {
       });
 
       if (!response.ok) {
-        throw new Error(`Webhook returned status ${response.status}`);
+        throw new Error(await getWebhookErrorMessage(response));
       }
 
       const rawData = (await response.json()) as N8NWebhookResponse;
@@ -69,8 +89,7 @@ export function useQualityCheck(): UseQualityCheckResult {
       setReport(report);
       setState('success');
     } catch (analyseError) {
-      const message =
-        analyseError instanceof Error ? analyseError.message : 'An error occurred while analysing your data';
+      const message = analyseError instanceof Error ? analyseError.message : fallbackErrorMessage;
       setError(message);
       setState('error');
     }

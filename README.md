@@ -1,4 +1,4 @@
-# Data Quality Checker
+# Validon
 
 A demo application for checking data quality in CSV files using AI-powered analysis with Claude and n8n.
 
@@ -29,7 +29,7 @@ npm install
 Create a `.env.local` file with your n8n webhook URL:
 
 ```
-VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-webhook-id
 ```
 
 ### Development

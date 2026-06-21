@@ -73,7 +73,7 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="app-title">Data Quality Checker</h1>
+        <h1 className="app-title">Validon</h1>
         <p className="app-description">Upload a CSV file to check data quality with AI-powered analysis</p>
       </header>
 

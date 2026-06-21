@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A data quality checker demo application built to showcase n8n workflow
+Validon is a demo application built to showcase n8n workflow
 orchestration with AI/LLM integration.
 
 ## Tech Stack
@@ -47,7 +47,7 @@ src/
 ## Environment Variables
 
 ```
-VITE_N8N_WEBHOOK_URL=  ← the n8n webhook endpoint
+N8N_WEBHOOK_URL=  ← the n8n webhook endpoint
 ```
 
 ## What NOT to Do

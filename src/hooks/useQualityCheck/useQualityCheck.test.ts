@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useQualityCheck } from './useQualityCheck';
 
 describe('useQualityCheck', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   it('initializes with idle state', () => {
@@ -15,17 +19,26 @@ describe('useQualityCheck', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('throws error when webhook URL is not configured', async () => {
+  it('shows a friendly error when the analysis service is unavailable', async () => {
     const { result } = renderHook(() => useQualityCheck());
 
-    vi.stubEnv('VITE_N8N_WEBHOOK_URL', '');
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 503,
+        json: () =>
+          Promise.resolve({
+            error: 'Analysis service is temporarily unavailable. Please try again later.',
+          }),
+      } as Response),
+    );
 
     await act(async () => {
       await result.current.analyse([{ name: 'test' }]);
     });
 
     expect(result.current.state).toBe('error');
-    expect(result.current.error).toContain('Webhook URL not configured');
+    expect(result.current.error).toContain('Analysis service is temporarily unavailable');
   });
 
   it('handles successful API response', async () => {
@@ -70,8 +83,6 @@ describe('useQualityCheck', () => {
       } as Response),
     );
 
-    vi.stubEnv('VITE_N8N_WEBHOOK_URL', 'https://webhook.test');
-
     await act(async () => {
       await result.current.analyse([{ email: 'invalid' }]);
     });
@@ -91,8 +102,6 @@ describe('useQualityCheck', () => {
       } as Response),
     );
 
-    vi.stubEnv('VITE_N8N_WEBHOOK_URL', 'https://webhook.test');
-
     await act(async () => {
       await result.current.analyse([{ name: 'test' }]);
     });
@@ -106,8 +115,6 @@ describe('useQualityCheck', () => {
     const { result } = renderHook(() => useQualityCheck());
 
     global.fetch = vi.fn(() => Promise.reject(new Error('Network error')));
-
-    vi.stubEnv('VITE_N8N_WEBHOOK_URL', 'https://webhook.test');
 
     await act(async () => {
       await result.current.analyse([{ name: 'test' }]);

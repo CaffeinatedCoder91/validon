@@ -1,4 +1,4 @@
-# Data Quality Checker - Technical Specification
+# Validon - Technical Specification
 
 ## Overview
 A single-page React application that allows users to upload a CSV file,
@@ -139,7 +139,7 @@ Responsibilities:
 
 ### Webhook Request
 - Method: POST
-- URL: import.meta.env.VITE_N8N_WEBHOOK_URL
+- URL: server-side `N8N_WEBHOOK_URL` via `/api/webhook`
 - Headers: Content-Type: application/json
 - Body:
 ```json
@@ -190,7 +190,7 @@ Responsibilities:
 
 ## Environment Variables
 ```
-VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-id
+N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-id
 ```
 
 ---
@@ -207,7 +207,7 @@ VITE_N8N_WEBHOOK_URL=https://your-n8n-instance.com/webhook/your-id
 
 ## Folder Structure
 ```
-data-quality-checker/
+validon/
   src/
     components/
       FileUpload.tsx
